@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Travel and Entertainment Search</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="custom.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.css">
+    
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular-animate.min.js"></script>
+    <script type="text/javascript" src="custom.js"></script>
+</head>
+<body ng-app="MyApp">
+<div class="container" ng-controller="MyCtrl">
+    <div class="searchform ">
+    <div class="row">
+        <div class="col-md-12 header text-center">
+          <h4>Travel and Entertainment Search</h4>       
+        </div>
+    </div>
+    <form>
+        <div class="row form-group">
+            <div class="col-md-2 offset-md-2">
+                <span for="keyword">Keyword<span class="mandatory">*</span></span>
+            </div>
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="keyword">
+                <span class="form-error" id="keyword-error"></span>
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-md-2 offset-md-2">
+                <span for="category">Category</span>
+            </div>
+            <div class="col-sm-5">
+                <select id="category" class="form-control">
+               </select>
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-md-2 offset-md-2">
+                <span for="distance">Distance (miles)</span>
+            </div>
+            <div class="col-sm-5">
+                <input type="text" class="form-control" id="distance" placeholder="10">
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-md-2 offset-md-2">
+                <span for="from">From<span class="mandatory">*</span></span>
+            </div>
+            <div class="col-sm-7">
+                <input type="radio" id="rad" name="from" value="here" checked> Current location<br>
+                <input type="radio" class="raad" name="from" value="location"> Other. Please specify:
+                <div class="location-div">
+                    <input type="text" class="form-control" id="location" placeholder="Enter a location" onFocus="geolocate('location')" disabled>
+                    <span class="form-error" id="location-error"></span>
+                </div>
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-md-10 offset-md-2">
+                <span >
+                    <button type="button" id="search" disabled class="btn btn-primary disabled">
+                    <i class="fa fa-search"></i> Search
+                    </button>
+                </span>
+                <button type="button" id="clear" class="btn btn-border" ng-click="clearRes()">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </form>
+    </div>
+    
+    
+    <ul class="nav nav-pills justify-content-center results-area">
+        <li class="nav-item res-tab-item" ng-click="clearRes()">
+            <a class="nav-link active" data-toggle="tab" href="#panel11" role="tab" id="res-tab">Results</a>
+        </li>
+        <li class="nav-item fav-item" ng-click="clearRes()">
+            <a class="nav-link" data-toggle="tab" href="#panel12" role="tab" id="favo-tab">Favorites</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade in show active" id="panel11" role="tabpanel">
+            
+            <div class="hidden" id="progress-bar">
+                <div class="progress" style="margin-top: 10%;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:50%"></div>
+                </div>
+            </div>
+            <div class="animate-hide-right" ng-show="results">
+                <div class="hidden" id="result-div">
+                    <div class="row pull-right details-btn">
+                        <button type="button" id="details" class="btn btn-sm btn-border" disabled ng-click='showPlacesTabs()'>
+                        Details &gt;
+                        </button>
+                    </div>
+                            <div class="table-responsive">
+                                <table class="table" id="results-table">
+                                    <thead>
+                                      <tr>
+                                        <th>#</th>
+                                        <th>Category</th>
+                                        <th>Name</th>
+                                        <th>Address</th>
+                                        <th>Favorite</th>
+                                        <th>Details</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody ng-resultTableBody>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="row justify-content-center">
+                                <div class="hidden" id="previous-div">
+                                    <button type="button" id="previous-btn" class="btn btn-sm btn-border">
+                                    Previous
+                                    </button>
+                                </div>
+                                <div class="hidden" id="next-div">
+                                    <button type="button" id="next-btn" class="btn btn-sm btn-border">
+                                    Next
+                                    </button>
+                                </div>
+                            </div>
+                </div>
+            </div>
+            <div class="hidden" id="no-result-div" style="margin-top: 10%;">
+                <div class="alert alert-warning text-center">
+                    No records
+                </div>
+            </div>
+            <div class="hidden" id="failed-result-div" style="margin-top: 10%;">
+                <div class="alert alert-danger">
+                    Failed to get results.
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="panel12" role="tabpanel">
+            <div class="animate-hide-right" ng-show="results">
+            <div class="hidden" id="fav-div">
+                <div class="row pull-right details-btn">
+                    <button type="button" id="fav-details-btn" class="btn btn-sm btn-border" disabled ng-click='showPlacesTabs()'>
+                    Details &gt;
+                    </button>
+                </div>
+                        <div class="table-responsive">
+                            <table class="table" id="fav-table">
+                                <thead>
+                                  <tr>
+                                    <th>#</th>
+                                    <th>Category</th>
+                                    <th>Name</th>
+                                    <th>Address</th>
+                                    <th>Favorite</th>
+                                    <th>Details</th>
+                                  </tr>
+                                </thead>
+                                <tbody ng-favTableBody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="row justify-content-center">
+                            <div class="hidden" id="fav-previous-div">
+                                <button type="button" id="fav-previous-btn" class="btn btn-sm btn-border">
+                                Previous
+                                </button>
+                            </div>
+                            <div class="hidden" id="fav-next-div">
+                                <button type="button" id="fav-next-btn" class="btn btn-sm btn-border">
+                                Next
+                                </button>
+                            </div>
+                        </div>
+            </div>
+            </div>
+            <div class="hidden" id="no-fav-div" style="margin-top: 10%;">
+                <div class="alert alert-warning">
+                    No records.
+                </div>
+            </div>
+            
+        </div>
+        
+        
+        <div class='animate-hide' id="place-details-tabs" ng-show="place">
+                <div id="place-name" class="row justify-content-center place-name">
+                    Place name
+                </div>
+                <div class="row padding-btm">
+                    <div class="col-md-12">
+                    <button type="button" id="list-btn" class="btn btn-sm btn-border pull-left" ng-click='showResultsTabs()'>
+                        &lt; List
+                    </button>
+                    
+                    <button type='button' id= "twitter-btn" class='btn btn-border pull-right' style="padding: 0"><img src="http://cs-server.usc.edu:45678/hw/hw8/images/Twitter.png" style="width:35px;"></button>
+                    
+                    <button type='button' id="favorite-btn" class='btn btn-border fav-details pull-right' style="margin-right: 10px;"><i class='fa fa-star-o'></i></button>
+                    </div>
+                </div>
+                <nav>
+                  <div class="nav nav-tabs justify-content-end" id="nav-tab" role="tablist">
+                    <a class="nav-item nav-link active" id="nav-info-tab" data-toggle="tab" href="#nav-info" role="tab" aria-controls="nav-info" aria-selected="true">Info</a>
+                    <a class="nav-item nav-link" id="nav-photos-tab" data-toggle="tab" href="#nav-photos" role="tab" aria-controls="nav-photos" aria-selected="false">Photos</a>
+                    <a class="nav-item nav-link" id="nav-map-tab" data-toggle="tab" href="#nav-map" role="tab" aria-controls="nav-map" aria-selected="false">Map</a>
+                    <a class="nav-item nav-link" id="nav-reviews-tab" data-toggle="tab" href="#nav-reviews" role="tab" aria-controls="nav-reviews" aria-selected="false">Reviews</a>
+                  </div>
+                </nav>
+                <div class="tab-content" id="nav-tabContent">
+                    <div class="tab-pane fade show active" id="nav-info" role="tabpanel" aria-labelledby="nav-info-tab">
+                        <div class="table-responsive" style="padding-top: 1.5rem">
+                            <table class="table table-striped" id="info-table">
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLongTitle">Open hours</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
+                              <div class="modal-body">
+                                
+                                  <div class="table-responsive">
+                                    <table class="table" id="daily-table">
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                  </div>
+                                  
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="nav-photos" role="tabpanel" aria-labelledby="nav-photos-tab">
+                        <div id="photo-gallery" style="padding-top: 1.5rem">
+                            <div class="photo-row">
+                                <div class="photo-column" id="photo-col-1"></div>
+                                <div class="photo-column" id="photo-col-2"></div>
+                                <div class="photo-column" id="photo-col-3"></div>
+                                <div class="photo-column" id="photo-col-4"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="nav-map" role="tabpanel" aria-labelledby="nav-map-tab">
+                        <div class="map-container" style="padding-top: 1.5rem;">
+                            <div class="row form-group">
+                                <div class="col-sm-4">
+                                    <span for="from-location">From</span>
+                                    <input type="text" class="form-control" id="from-location" onFocus="geolocate('from-location')">
+                                </div>
+                                <div class="col-sm-4">
+                                    <span for="to-location">To</span>
+                                    <input type="text" class="form-control" id="to-location" disabled>
+                                </div>
+                                <div class="col-sm-2">
+                                    <span for="travel-mode">Travel Mode</span>
+                                    <select id="travel-mode" class="form-control">
+                                        <option value="DRIVING">Driving</option>
+                                        <option value="BICYCLING">Bicycling</option>
+                                        <option value="TRANSIT">Transit</option>
+                                        <option value="WALKING">Walking</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" id="get-directions" class="btn btn-primary" style="margin-top: 1.3rem;" disabled>
+                                        Get Directions
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="row form-group">
+                                <div class="col-sm-2">
+                                    <button type="button" id="pegman-btn" class="btn btn-border" style="padding: 3px;">
+                                        <img id="pegman-img" src="http://cs-server.usc.edu:45678/hw/hw8/images/Pegman.png"/ style="    width: 2rem;">
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="row form-group">
+                                <div class="map-row">
+                                    <div id="map"></div>
+                                </div>
+                                <div id="directionsPanel" style="width:100%;height 100%;padding: 0 15px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="nav-reviews" role="tabpanel" aria-labelledby="nav-reviews-tab">
+
+                        <div class="row" style="padding-top: 1rem">
+                            <div class="col-md-12">
+                                <div class="row">
+                                <div class="dropdown">
+                                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Google Reviews
+                                  </button>
+                                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <button class="dropdown-item dropdown1" ng-click="review=true">Google Reviews</button>
+                                    <button class="dropdown-item dropdown1" ng-click="review=false">Yelp Reviews</button>
+                                  </div>
+                                </div>
+
+                                <div class="dropdown" style="padding-left: 15px;">
+                                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Default Order
+                                  </button>
+                                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <button class="dropdown-item dropdown2" id="defaultorder"data-sort="default" data-order="asc">Default Order</button>
+                                    <button class="dropdown-item dropdown2" id="highestrating" data-sort="rating" data-order="desc">Highest Rating</button>
+                                    <button class="dropdown-item dropdown2" id="lowestrating" data-sort="rating" data-order="asc">Lowest Rating</button>
+                                    <button class="dropdown-item dropdown2" id="mostrecent" data-sort="time" data-order="desc">Most Recent</button>
+                                    <button class="dropdown-item dropdown2" id="leastrecent" data-sort="time" data-order="asc">Least Recent</button>
+                                  </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="review-container" style="padding-top: 1.5rem">
+                            <div id="xxx">
+                                <div id="google-reviews" class="review-fade" ng-show="review">
+                            </div>
+                            </div>
+                            
+                            <div id="yyy">
+                                <div id="yelp-reviews" class="review-fade" ng-hide="review">
+                            </div>
+                            </div>
+                        </div>
+                        <div class="hidden" id="no-reviews-div" style="margin-top: 10%;">
+                            <div class="alert alert-warning">
+                                No records.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8Akh-7UPuyWLjXacUHadHZ11KFHHSlGk&libraries=places"></script>
+</body>
+</html>
